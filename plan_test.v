@@ -26,3 +26,14 @@ fn test_plan_requests_fallback_for_unsupported_compat_syntax() {
 	assert result.decision == .fallback
 	assert result.backend == .quickjs
 }
+
+
+fn test_open_policy_escalates_host_capabilities() {
+	request := EvalRequest{
+		source: 'fetch("https://example.test")'
+	}
+	result := plan(request, open_policy())
+	assert result.decision == .fallback
+	assert result.backend == .quickjs
+	assert result.reason.contains('capability')
+}
