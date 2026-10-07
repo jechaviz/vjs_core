@@ -35,16 +35,22 @@ pub fn plan(request EvalRequest, policy RuntimePolicy) EvalPlan {
 		return eval_plan(.deny, .vjs, 'empty script', ['vjs.plan=deny'])
 	}
 	if source.len > policy.max_source_bytes {
-		return eval_plan(.deny, .vjs, 'source budget exceeded', [
-			'vjs.plan=deny',
-		])
+		return if policy.allow_host_fallback {
+			eval_plan(.fallback, .quickjs, 'source exceeds VJS budget', ['vjs.plan=fallback'])
+		} else {
+			eval_plan(.deny, .vjs, 'source budget exceeded', ['vjs.plan=deny'])
+		}
 	}
 	lower := source.to_lower()
 	if lower.contains('fetch(') || lower.contains('xmlhttprequest') || lower.contains('filesystem')
 		|| lower.contains('fs.') {
-		return eval_plan(.deny, .vjs, 'host capability denied', [
-			'vjs.plan=deny',
-		])
+		return if policy.allow_host_fallback {
+			eval_plan(.fallback, .quickjs, 'host capability requires full runtime', [
+				'vjs.plan=fallback',
+			])
+		} else {
+			eval_plan(.deny, .vjs, 'host capability denied', ['vjs.plan=deny'])
+		}
 	}
 	if contains_fallback_syntax(lower) {
 		return eval_plan(.fallback, .quickjs, 'unsupported syntax for VJS', [
