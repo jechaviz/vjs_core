@@ -2,15 +2,27 @@ module vjs_core
 
 pub struct RuntimePolicy {
 pub:
-	max_source_bytes int  = 8192
-	max_steps        int  = 4096
-	max_dom_nodes    int  = 512
+	max_source_bytes int  = 1024 * 1024
+	max_steps        int  = 1_000_000
+	max_dom_nodes    int  = 100_000
 	allow_timers     bool = true
 	allow_events     bool = true
+	allow_host_fallback bool = true
+}
+
+pub fn open_policy() RuntimePolicy {
+	return RuntimePolicy{}
 }
 
 pub fn strict_policy() RuntimePolicy {
-	return RuntimePolicy{}
+	return RuntimePolicy{
+		max_source_bytes: 8192
+		max_steps: 4096
+		max_dom_nodes: 512
+		allow_timers: true
+		allow_events: true
+		allow_host_fallback: false
+	}
 }
 
 pub fn tiny_policy() RuntimePolicy {
